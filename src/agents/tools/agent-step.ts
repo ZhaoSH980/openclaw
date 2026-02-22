@@ -64,7 +64,7 @@ export async function runAgentStep(params: {
 
   const stepRunId = typeof response?.runId === "string" && response.runId ? response.runId : "";
   const resolvedRunId = stepRunId || stepIdem;
-  const stepWaitMs = Math.min(params.timeoutMs, 60_000);
+  const stepWaitMs = Math.min(params.timeoutMs, 120_000);
   const wait = await callGateway<{ status?: string }>({
     method: "agent.wait",
     params: {
