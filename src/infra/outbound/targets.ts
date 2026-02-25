@@ -115,9 +115,10 @@ export function resolveSessionDeliveryTarget(params: {
     }
   }
 
-  const accountId = channel && channel === lastChannel ? lastAccountId : undefined;
-  const threadId = channel && channel === lastChannel ? lastThreadId : undefined;
   const mode = params.mode ?? (explicitTo ? "explicit" : "implicit");
+  const accountId = channel && channel === lastChannel ? lastAccountId : undefined;
+  const threadId =
+    mode !== "heartbeat" && channel && channel === lastChannel ? lastThreadId : undefined;
 
   const resolvedThreadId = explicitThreadId ?? threadId;
   return {
@@ -160,7 +161,7 @@ export function resolveOutboundTarget(params: {
     };
   }
 
-  const allowFrom =
+  const allowFromRaw =
     params.allowFrom ??
     (params.cfg && plugin.config.resolveAllowFrom
       ? plugin.config.resolveAllowFrom({
@@ -168,6 +169,7 @@ export function resolveOutboundTarget(params: {
           accountId: params.accountId ?? undefined,
         })
       : undefined);
+  const allowFrom = allowFromRaw?.map((entry) => String(entry));
 
   // Fall back to per-channel defaultTo when no explicit target is provided.
   const effectiveTo =
@@ -360,12 +362,13 @@ export function resolveHeartbeatSenderContext(params: {
   const accountId =
     params.delivery.accountId ??
     (provider === params.delivery.lastChannel ? params.delivery.lastAccountId : undefined);
-  const allowFrom = provider
+  const allowFromRaw = provider
     ? (getChannelPlugin(provider)?.config.resolveAllowFrom?.({
         cfg: params.cfg,
         accountId,
       }) ?? [])
     : [];
+  const allowFrom = allowFromRaw.map((entry) => String(entry));
 
   const sender = resolveHeartbeatSenderId({
     allowFrom,
